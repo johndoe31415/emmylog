@@ -1,0 +1,48 @@
+body {
+	font-family: Sans-Serif;
+}
+
+table {
+	border-spacing: 0px;
+	border-collapse: separate;
+}
+
+th, td {
+	padding: 5px 15px 5px 15px;
+	text-align: left;
+	border-bottom: 1px solid #ddd;
+
+}
+
+td.last24hrs {
+	background: #eee;
+}
+
+div.buttons {
+	margin-top: 25px;
+}
+
+#btn_sleep {
+	background: #f39c12;
+}
+
+#btn_wake {
+	background: #2ecc71;
+}
+
+#btn_nurse_left, #btn_nurse_right {
+	background: #3498db;
+	color: #eee;
+}
+
+#btn_nurse_bottle {
+	background: #9b59b6;
+	color: #eee;
+}
+
+button {
+	background: #eee;
+	padding: 10px;
+	border: 1px solid #fff;
+	border-radius: 5px;
+}
