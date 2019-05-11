@@ -81,13 +81,13 @@ if not "action" in postdata:
 
 action = postdata.get("action")
 if action == "list":
-	rows = cursor.execute("SELECT ts_utc, event FROM events ORDER BY ts_utc, eid ASC LIMIT 30;").fetchall()
-	data = [
+	rows = cursor.execute("SELECT ts_utc, event FROM events ORDER BY ts_utc DESC, eid DESC LIMIT 30;").fetchall()
+	data = list(reversed([
 		{
 			"ts_utc": row[0],
 			"event": row[1],
 		} for row in rows
-	]
+	]))
 	respond_success(data = data)
 elif action == "add":
 	utc_tz = pytz.timezone("UTC")

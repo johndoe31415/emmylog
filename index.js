@@ -112,7 +112,7 @@ class EmmyLog {
 			5:	"Fr",
 			6:	"Sa",
 		}[ts.getDay()];
-		append_cell(sprintf("%s, %d.%d %d:%02d", weekday, ts.getDate(), ts.getMonth(), ts.getHours(), ts.getMinutes()), classes);
+		append_cell(sprintf("%s, %d.%d %d:%02d", weekday, ts.getDate(), ts.getMonth() + 1, ts.getHours(), ts.getMinutes()), classes);
 
 		append_cell("vor " + format_tdiff(tdiff), classes);
 
@@ -132,11 +132,7 @@ class EmmyLog {
 		}
 		append_cell(cell_text, classes);
 
-		if (this._tbody.childNodes.length == 0) {
-			this._tbody.append(tr);
-		} else {
-			this._tbody.insertBefore(tr, this._tbody.childNodes[0]);
-		}
+		this._tbody.insertBefore(tr, this._tbody.firstChild);
 	}
 
 	display_table_data() {
