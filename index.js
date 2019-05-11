@@ -24,13 +24,13 @@
 function format_tdiff(secs) {
 	secs = Math.round(secs);
 	if (secs < 60) {
-		return sprintf("vor %.0f Sek", secs)
+		return sprintf("%.0f Sek", secs)
 	} else if (secs < 3600) {
-		return sprintf("vor %.0f Min", secs / 60)
+		return sprintf("%.0f Min", secs / 60)
 	} else if (secs < 86400) {
-		return sprintf("vor %d:%02d Std:Min", secs / 3600, secs % 3600 / 60)
+		return sprintf("%d:%02d Std:Min", secs / 3600, secs % 3600 / 60)
 	} else {
-		return sprintf("vor %d Tag und %d:%02d Std:Min", secs / 86400, secs % 86400 / 3600, secs % 86400 % 3600 / 60)
+		return sprintf("%d Tag und %d:%02d Std:Min", secs / 86400, secs % 86400 / 3600, secs % 86400 % 3600 / 60)
 	}
 }
 
@@ -41,12 +41,14 @@ function format_event(event) {
 		"nurse_bottle":		"🍼 Flasche",
 		"sleep":			"😴 Schlafen",
 		"awake":			"⏰ Wach",
+		"test":				"🧪  Test",
 	}[event];
 }
 
 class EmmyLog {
-	constructor(table) {
+	constructor(table, ts_input) {
 		this._table = table;
+		this._ts_input = ts_input;
 		this._tbody = this._table.querySelector("tbody");
 		this._query_uri = "query.py";
 		this._table_data = null;
@@ -80,10 +82,8 @@ class EmmyLog {
 		this._tbody.innerHTML = "";
 	}
 
-	_add_table_entry(entry) {
-		console.log(entry);
+	_add_table_entry(entry, last_awake_ts, last_sleep_ts) {
 		const ts = new Date(entry["ts_utc"]);
-		console.log(ts);
 
 		const now = new Date();
 		const tdiff = (now.getTime() - ts.getTime()) / 1000;
@@ -114,10 +114,29 @@ class EmmyLog {
 		}[ts.getDay()];
 		append_cell(sprintf("%s, %d.%d %d:%02d", weekday, ts.getDate(), ts.getMonth(), ts.getHours(), ts.getMinutes()), classes);
 
-		append_cell(format_tdiff(tdiff), classes);
-		append_cell(format_event(entry["event"]), classes);
+		append_cell("vor " + format_tdiff(tdiff), classes);
 
-		this._tbody.append(tr);
+		let comment = null;
+		if ((entry["event"] == "awake") && (last_sleep_ts != null)) {
+			/* Now awake, how long did she sleep? */
+			const tdiff = (ts.getTime() - last_sleep_ts.getTime()) / 1000;
+			comment = format_tdiff(tdiff) + " geschlafen";
+		} else if ((entry["event"] == "sleep") && (last_awake_ts != null)) {
+			/* Now sleeping, how long was she awake? */
+			const tdiff = (ts.getTime() - last_awake_ts.getTime()) / 1000;
+			comment = format_tdiff(tdiff) + " wach";
+		}
+		let cell_text = format_event(entry["event"]);
+		if (comment != null) {
+			cell_text += " (" + comment + ")";
+		}
+		append_cell(cell_text, classes);
+
+		if (this._tbody.childNodes.length == 0) {
+			this._tbody.append(tr);
+		} else {
+			this._tbody.insertBefore(tr, this._tbody.childNodes[0]);
+		}
 	}
 
 	display_table_data() {
@@ -125,8 +144,15 @@ class EmmyLog {
 			return;
 		}
 		this._clear_table();
+		let last_awake_ts = null;
+		let last_sleep_ts = null;
 		for (const entry of this._table_data) {
-			this._add_table_entry(entry);
+			this._add_table_entry(entry, last_awake_ts, last_sleep_ts);
+			if (entry["event"] == "awake") {
+				last_awake_ts = new Date(entry["ts_utc"]);
+			} else if (entry["event"] == "sleep") {
+				last_sleep_ts = new Date(entry["ts_utc"]);
+			}
 		}
 	}
 
@@ -143,7 +169,8 @@ class EmmyLog {
 
 	_add_event(eventname) {
 		this._execute("add", {
-			"event": eventname
+			"event": eventname,
+			"ts": this._ts_input.value,
 		}, () => this.update());
 	}
 
@@ -158,6 +185,8 @@ class EmmyLog {
 			this._add_event("nurse_right");
 		} else if (action == "btn_nurse_bottle") {
 			this._add_event("nurse_bottle");
+		} else if (action == "btn_test") {
+			this._add_event("test");
 		} else {
 			console.log("Unsupported action:", action);
 		}
@@ -165,7 +194,8 @@ class EmmyLog {
 }
 
 const events_table = document.querySelector("#events");
-const emmylog = new EmmyLog(events_table);
+const ts_input = document.querySelector("#timestamp");
+const emmylog = new EmmyLog(events_table, ts_input);
 emmylog.update();
 setInterval(() => emmylog.update(), 300 * 1000);
 document.querySelectorAll(".action_btn").forEach(function(node) {

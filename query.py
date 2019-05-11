@@ -81,7 +81,7 @@ if not "action" in postdata:
 
 action = postdata.get("action")
 if action == "list":
-	rows = cursor.execute("SELECT ts_utc, event FROM events ORDER BY ts_utc DESC LIMIT 30;").fetchall()
+	rows = cursor.execute("SELECT ts_utc, event FROM events ORDER BY ts_utc, eid ASC LIMIT 30;").fetchall()
 	data = [
 		{
 			"ts_utc": row[0],
@@ -103,7 +103,7 @@ elif action == "add":
 	else:
 		# Try to parse local time
 		try:
-			ts = datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+			ts = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M")
 			ts = localzone.localize(ts)
 			ts_utc = ts.astimezone(utc_tz)
 		except ValueError as e:

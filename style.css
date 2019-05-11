@@ -7,6 +7,12 @@ table {
 	border-collapse: separate;
 }
 
+input {
+	font-family: Sans-Serif;
+	border: 1px solid #aaa;
+	margin-top: 5px;
+}
+
 th, td {
 	padding: 5px 15px 5px 15px;
 	text-align: left;
@@ -38,6 +44,11 @@ div.buttons {
 #btn_nurse_bottle {
 	background: #9b59b6;
 	color: #eee;
+}
+
+#btn_test {
+	background: #eee;
+	display: none;
 }
 
 button {
